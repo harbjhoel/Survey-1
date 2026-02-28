@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Product Survey — Offline P2P Payment System</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --ink:#1a1a2e; --ink-light:#3d3d5c; --muted:#8b8ba0;
+    --bg:#fafaf8; --surface:#ffffff; --rule:#e8e8e2;
+    --accent:#c9531e; --accent-warm:#e8a020; --accent-cool:#2d6a9f;
+    --success:#2a7a4b; --tag-bg:#f0f0eb; --radius:8px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.7;}
+
+  /* ── HEADER ── */
+  .doc-header{background:var(--ink);color:white;padding:64px 80px 56px;position:relative;overflow:hidden;}
+  .doc-header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent-warm),var(--accent-cool));}
+  .header-grid{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:end;max-width:1100px;}
+  .header-eyebrow{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:16px;font-weight:400;}
+  .header-title{font-family:'Playfair Display',serif;font-size:48px;font-weight:900;line-height:1.05;letter-spacing:-1px;}
+  .header-title em{font-style:italic;color:rgba(255,255,255,0.5);}
+  .header-desc{margin-top:20px;color:rgba(255,255,255,0.55);font-size:14px;font-weight:300;max-width:540px;line-height:1.7;}
+  .header-meta{text-align:right;}
+  .meta-stat{margin-bottom:16px;}
+  .meta-stat .num{font-family:'Playfair Display',serif;font-size:40px;font-weight:700;color:white;line-height:1;}
+  .meta-stat .label{font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;}
+
+  /* ── TOC ── */
+  .toc-bar{background:white;border-bottom:1px solid var(--rule);padding:0 80px;display:flex;gap:0;overflow-x:auto;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.04);}
+  .toc-btn{background:none;border:none;border-bottom:3px solid transparent;padding:14px 18px;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;letter-spacing:0.5px;color:var(--muted);cursor:pointer;white-space:nowrap;transition:color 0.2s;}
+  .toc-btn:hover{color:var(--ink);}
+  .toc-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+  /* ── LAYOUT ── */
+  .main{max-width:1100px;margin:0 auto;padding:0 80px 120px;}
+  .survey-section{display:none;padding-top:56px;}
+  .survey-section.active{display:block;}
+
+  /* ── SECTION HEADER ── */
+  .section-head{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:start;margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--rule);}
+  .section-num{font-family:'Playfair Display',serif;font-size:72px;font-weight:900;line-height:1;color:var(--rule);user-select:none;}
+  .section-title-block h2{font-family:'Playfair Display',serif;font-size:30px;font-weight:700;line-height:1.2;margin-bottom:8px;}
+  .section-title-block p{color:var(--muted);font-size:13px;font-weight:300;max-width:560px;}
+  .section-tags{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;}
+  .stag{padding:3px 10px;border-radius:100px;font-size:10px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;}
+  .stag-red{background:rgba(201,83,30,0.1);color:var(--accent);}
+  .stag-blue{background:rgba(45,106,159,0.1);color:var(--accent-cool);}
+  .stag-gold{background:rgba(232,160,32,0.1);color:var(--accent-warm);}
+  .stag-green{background:rgba(42,122,75,0.1);color:var(--success);}
+
+  /* ── QUESTION CARD ── */
+  .q-card{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:28px 32px;position:relative;margin-bottom:20px;transition:box-shadow 0.2s;}
+  .q-card:hover{box-shadow:0 4px 24px rgba(0,0,0,0.06);}
+  .q-num-badge{position:absolute;top:28px;left:-16px;background:var(--ink);color:white;font-family:'Playfair Display',serif;font-size:12px;font-weight:700;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+  .q-meta{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+  .q-type{font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:600;padding:3px 10px;border-radius:100px;}
+  .qt-single{background:rgba(45,106,159,0.08);color:var(--accent-cool);}
+  .qt-multi{background:rgba(201,83,30,0.08);color:var(--accent);}
+  .qt-scale{background:rgba(232,160,32,0.08);color:var(--accent-warm);}
+  .qt-rank{background:rgba(42,122,75,0.08);color:var(--success);}
+  .qt-open{background:rgba(139,139,160,0.12);color:var(--muted);}
+  .qt-scenario{background:rgba(26,26,46,0.08);color:var(--ink);}
+  .q-text{font-size:15px;font-weight:500;line-height:1.55;color:var(--ink);margin-bottom:14px;}
+  .q-note{font-size:11px;color:var(--muted);font-style:italic;margin-top:10px;padding-top:10px;border-top:1px solid var(--rule);}
+
+  /* ── RADIO OPTIONS ── */
+  .options-list{list-style:none;display:flex;flex-direction:column;gap:6px;}
+  .options-list li{position:relative;}
+  .options-list label{
+    display:flex;align-items:flex-start;gap:10px;
+    padding:9px 12px;background:var(--tag-bg);
+    border-radius:var(--radius);font-size:13px;color:var(--ink-light);
+    line-height:1.45;cursor:pointer;
+    border:1.5px solid transparent;
+    transition:background 0.15s, border-color 0.15s;
+    user-select:none;
+  }
+  .options-list label:hover{background:#e8e8e0;border-color:var(--rule);}
+  .options-list input[type="radio"],
+  .options-list input[type="checkbox"]{display:none;}
+  /* Custom marker */
+  .opt-mark{
+    flex-shrink:0;width:16px;height:16px;
+    border:1.5px solid #b0b0c0;border-radius:50%;
+    background:white;margin-top:1px;
+    display:flex;align-items:center;justify-content:center;
+    transition:border-color 0.15s,background 0.15s;
+  }
+  input[type="checkbox"] ~ .opt-mark{border-radius:4px;}
+  /* Checked states */
+  .options-list input[type="radio"]:checked + label,
+  .options-list input[type="checkbox"]:checked + label{
+    background:rgba(45,106,159,0.08);
+    border-color:var(--accent-cool);
+    color:var(--ink);
+  }
+  .options-list input[type="radio"]:checked + label .opt-mark{
+    background:var(--accent-cool);border-color:var(--accent-cool);
+  }
+  .options-list input[type="checkbox"]:checked + label .opt-mark{
+    background:var(--accent);border-color:var(--accent);
+  }
+  .options-list input[type="radio"]:checked + label .opt-mark::after{
+    content:'';width:6px;height:6px;border-radius:50%;background:white;
+  }
+  .options-list input[type="checkbox"]:checked + label .opt-mark::after{
+    content:'✓';font-size:10px;color:white;font-weight:700;line-height:1;
+  }
+
+  /* ── SCALE ── */
+  .scale-wrap{margin-top:4px;}
+  .scale-buttons{display:flex;gap:6px;flex-wrap:wrap;}
+  .scale-btn-label{
+    flex:1;min-width:36px;max-width:52px;height:44px;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--tag-bg);border:1.5px solid var(--rule);
+    border-radius:8px;font-size:13px;font-weight:600;color:var(--muted);
+    cursor:pointer;transition:all 0.15s;user-select:none;
+  }
+  .scale-btn-label:hover{background:#e0e0d8;border-color:#b0b0c0;color:var(--ink);}
+  .scale-btn-label input{display:none;}
+  .scale-btn-label input:checked ~ span{color:white;}
+  .scale-btn-label:has(input:checked){
+    background:var(--accent-warm);border-color:var(--accent-warm);color:white;
+  }
+  .scale-legend{display:flex;justify-content:space-between;margin-top:6px;padding:0 2px;}
+  .scale-legend span{font-size:10px;color:var(--muted);font-style:italic;max-width:45%;}
+  .scale-legend span:last-child{text-align:right;}
+
+  /* ── OPEN TEXT ── */
+  .open-textarea{
+    width:100%;min-height:90px;padding:14px 16px;
+    background:var(--tag-bg);border:1.5px solid var(--rule);
+    border-radius:var(--radius);font-size:13px;color:var(--ink);
+    font-family:'Jost',sans-serif;line-height:1.6;
+    resize:vertical;transition:border-color 0.15s;
+    margin-top:4px;
+  }
+  .open-textarea:focus{outline:none;border-color:var(--accent-cool);background:white;}
+  .open-textarea::placeholder{color:var(--muted);font-style:italic;}
+
+  /* ── SCENARIO BOX ── */
+  .scenario-box{
+    background:#fff8f0;border-left:3px solid var(--accent-warm);
+    border-radius:0 var(--radius) var(--radius) 0;
+    padding:14px 16px;font-size:13px;color:var(--ink-light);
+    margin-bottom:14px;line-height:1.6;
+  }
+  .scenario-box strong{color:var(--accent-warm);}
+
+  /* ── RANKING ── */
+  .rank-list{display:flex;flex-direction:column;gap:6px;list-style:none;}
+  .rank-item{
+    display:flex;align-items:center;gap:12px;
+    padding:10px 14px;background:var(--tag-bg);
+    border:1.5px solid var(--rule);border-radius:var(--radius);
+    cursor:grab;transition:box-shadow 0.15s,background 0.15s;
+    font-size:13px;color:var(--ink-light);
+    user-select:none;
+  }
+  .rank-item:active{cursor:grabbing;}
+  .rank-item.dragging{opacity:0.4;background:#e8e8e0;}
+  .rank-item.drag-over{border-color:var(--accent-cool);background:rgba(45,106,159,0.06);}
+  .rank-badge{
+    flex-shrink:0;width:26px;height:26px;border-radius:50%;
+    background:var(--ink);color:white;
+    font-size:11px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .drag-handle{color:#b0b0c0;font-size:14px;flex-shrink:0;margin-right:2px;}
+  .rank-hidden-input{display:none;}
+  .rank-hint{font-size:11px;color:var(--muted);font-style:italic;margin-bottom:8px;}
+
+  /* ── PROGRESS ── */
+  .progress-bar-wrap{
+    position:sticky;top:48px;z-index:99;
+    background:white;border-bottom:1px solid var(--rule);
+    padding:8px 80px;display:flex;align-items:center;gap:12px;
+    font-size:11px;color:var(--muted);
+  }
+  .progress-track{flex:1;height:4px;background:var(--rule);border-radius:100px;overflow:hidden;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-warm));border-radius:100px;transition:width 0.4s ease;}
+
+  /* ── NAVIGATION BUTTONS ── */
+  .nav-buttons{display:flex;justify-content:space-between;align-items:center;margin-top:48px;padding-top:32px;border-top:1px solid var(--rule);}
+  .btn{padding:12px 28px;border-radius:8px;font-family:'Jost',sans-serif;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all 0.2s;}
+  .btn-prev{background:var(--tag-bg);color:var(--ink-light);}
+  .btn-prev:hover{background:#e0e0d8;}
+  .btn-next{background:var(--ink);color:white;}
+  .btn-next:hover{background:#2d2d4a;}
+  .btn-submit{background:var(--accent);color:white;padding:14px 40px;font-size:15px;}
+  .btn-submit:hover{background:#a8431a;}
+  .btn:disabled{opacity:0.4;cursor:not-allowed;}
+  .section-counter{font-size:12px;color:var(--muted);}
+
+  /* ── SUCCESS STATE ── */
+  .submit-success{
+    display:none;text-align:center;padding:80px 40px;
+  }
+  .submit-success .check{font-size:64px;margin-bottom:24px;}
+  .submit-success h2{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;margin-bottom:12px;}
+  .submit-success p{color:var(--muted);font-size:14px;max-width:400px;margin:0 auto;}
+
+  /* ── FORM SETUP BANNER ── */
+  .setup-banner{
+    background:#fff3cd;border:1px solid #ffc107;border-radius:8px;
+    padding:14px 20px;margin:24px 80px 0;
+    font-size:13px;color:#856404;display:flex;gap:12px;align-items:flex-start;
+  }
+  .setup-banner.hidden{display:none;}
+  .setup-banner strong{display:block;margin-bottom:4px;}
+  .setup-banner code{background:rgba(0,0,0,0.08);padding:2px 6px;border-radius:4px;font-size:12px;}
+
+  @media(max-width:768px){
+    .doc-header,.progress-bar-wrap,.main{padding-left:20px;padding-right:20px;}
+    .toc-bar{padding:0 12px;}
+    .header-grid{grid-template-columns:1fr;}
+    .header-title{font-size:32px;}
+    .section-num{font-size:48px;}
+    .q-card{padding:20px 20px 20px 28px;}
+    .q-num-badge{left:-12px;width:24px;height:24px;font-size:10px;}
+    .nav-buttons{flex-direction:column;gap:12px;}
+    .btn{width:100%;text-align:center;}
+  }
+</style>
+</head>
+<body>
+
+<div class="doc-header">
+  <div class="header-grid">
+    <div>
+      <div class="header-eyebrow">Research & Validation · Offline P2P Payment System</div>
+      <div class="header-title">Product Survey<br/><em>& Research Questions</em></div>
+      <div class="header-desc">Comprehensive survey spanning user behaviour, security trust, offline payment perception, ultrasonic UX, merchant needs, and feature prioritisation.</div>
+    </div>
+    <div class="header-meta">
+      <div class="meta-stat"><div class="num">80</div><div class="label">Questions</div></div>
+      <div class="meta-stat"><div class="num">10</div><div class="label">Sections</div></div>
+      <div class="meta-stat"><div class="num">~12</div><div class="label">Min to complete</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="progress-bar-wrap">
+  <span id="progressLabel">Section 1 of 10</span>
+  <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:10%"></div></div>
+  <span id="progressPct">10%</span>
+</div>
+
+<nav class="toc-bar">
+  <button class="toc-btn active" onclick="showTab(0,this)">01 Demographics</button>
+  <button class="toc-btn" onclick="showTab(1,this)">02 Payment Habits</button>
+  <button class="toc-btn" onclick="showTab(2,this)">03 Offline Concept</button>
+  <button class="toc-btn" onclick="showTab(3,this)">04 Ultrasonic UX</button>
+  <button class="toc-btn" onclick="showTab(4,this)">05 Security & Trust</button>
+  <button class="toc-btn" onclick="showTab(5,this)">06 Usability</button>
+  <button class="toc-btn" onclick="showTab(6,this)">07 Merchant</button>
+  <button class="toc-btn" onclick="showTab(7,this)">08 Feature Priority</button>
+  <button class="toc-btn" onclick="showTab(8,this)">09 Scenarios</button>
+  <button class="toc-btn" onclick="showTab(9,this)">10 Open Feedback</button>
+</nav>
+
+<div class="main">
+
+<form id="surveyForm"
+      action="https://formspree.io/f/xaqdkvzl"
+      method="POST"
+      novalidate>
+
+  <!-- Hidden: tracks which section was active on submit -->
+  <input type="hidden" name="_subject" value="New Survey Response — Offline P2P Payment System"/>
+  <input type="hidden" name="_next" value=""/>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 1 — DEMOGRAPHICS
+═══════════════════════════════════════════════════════ -->
+<div id="sec-0" class="survey-section active">
+  <div class="section-head">
+    <div class="section-num">01</div>
+    <div class="section-title-block">
+      <h2>Demographics &amp; Context</h2>
+      <p>Establish participant profile and baseline context. Helps segment responses by market, tech literacy, and use case.</p>
+      <div class="section-tags"><span class="stag stag-blue">All Personas</span><span class="stag stag-red">Pre-Launch</span></div>
+    </div>
+  </div>
+  <div id="qs-0"></div>
+  <div class="nav-buttons">
+    <span class="section-counter">Section 1 of 10</span>
+    <button type="button" class="btn btn-next" onclick="nextSection()">Next Section →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 2 — PAYMENT HABITS
+═══════════════════════════════════════════════════════ -->
+<div id="sec-1" class="survey-section">
+  <div class="section-head">
+    <div class="section-num">02</div>
+    <div class="section-title-block">
+      <h2>Current Payment Behaviour</h2>
+      <p>Understand the existing payment landscape. Reveals adoption patterns, frustrations with current tools, and where this product fits.</p>
+      <div class="section-tags"><span class="stag stag-blue">All Personas</span><span class="stag stag-gold">Baseline Research</span></div>
+    </div>
+  </div>
+  <div id="qs-1"></div>
+  <div class="nav-buttons">
+    <button type="button" class="btn btn-prev" onclick="prevSection()">← Back</button>
+    <span class="section-counter">Section 2 of 10</span>
+    <button type="button" class="btn btn-next" onclick="nextSection()">Next Section →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 3 — OFFLINE CONCEPT
+═══════════════════════════════════════════════════════ -->
+<div id="sec-2" class="survey-section">
+  <div class="section-head">
+    <div class="section-num">03</div>
+    <div class="section-title-block">
+      <h2>Offline Payment Concept Validation</h2>
+      <p>Validates the core product premise — that users want and would trust offline payments. Explores trust thresholds and mental models.</p>
+      <div class="section-tags"><span class="stag stag-red">Concept Validation</span><span class="stag stag-gold">Critical</span></div>
+    </div>
+  </div>
+  <div id="qs-2"></div>
+  <div class="nav-buttons">
+    <button type="button" class="btn btn-prev" onclick="prevSection()">← Back</button>
+    <span class="section-counter">Section 3 of 10</span>
+    <button type="button" class="btn btn-next" onclick="nextSection()">Next Section →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 4 — ULTRASONIC UX
+═══════════════════════════════════════════════════════ -->
+<div id="sec-3" class="survey-section">
+  <div class="section-head">
+    <div class="section-num">04</div>
+    <div class="section-title-block">
+      <h2>Ultrasonic Transfer Perception</h2>
+      <p>Measures first reactions, comfort levels, and expectations around sound-based payment — vital for designing the transfer experience.</p>
+      <div class="section-tags"><span class="stag stag-gold">Novel Concept</span><span class="stag stag-red">Critical UX Research</span></div>
+    </div>
+  </div>
+  <div id="qs-3"></div>
+  <div class="nav-buttons">
+    <button type="button" class="btn btn-prev" onclick="prevSection()">← Back</button>
+    <span class="section-counter">Section 4 of 10</span>
+    <button type="button" class="btn btn-next" onclick="nextSection()">Next Section →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 5 — SECURITY & TRUST
+═══════════════════════════════════════════════════════ -->
+<div id="sec-4" class="survey-section">
+  <div class="section-head">
+    <div class="section-num">05</div>
+    <div class="section-title-block">
+      <h2>Security &amp; Trust</h2>
+      <p>Explores how users perceive and evaluate security. Uncovers trust signals, fraud history, and comfort with security mechanisms.</p>
+      <div class="section-tags"><span class="stag stag-red">Security Research</span><span class="stag stag-gold">Critical</span></div>
+    </div>
+  </div>
+  <div id="qs-4"></div>
+  <div class="nav-buttons">
+    <button type="button" class="btn btn-prev" onclick="prevSection()">← Back</button>
+    <span class="section-counter">Section 5 of 10</span>
+    <button type="button" class="btn btn-next" onclick="nextSection()">Next Section →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 6 — USABILITY
+═══════════════════════════════════════════════════════ -->
+<div id="sec-5" class="survey-section">
+  <div class="section-head">
+    <div class="section-num">06</div>
+    <div class="section-title-block">
+      <h2>Usability &amp; Onboarding</h2>
+      <p>Quantifies acceptable friction levels, time tolerance, and UI preferences. Directly informs onboarding and payment flow design.</p>
+      <div class="section-tags"><span class="stag stag-blue">All Personas</span><span class="stag stag-green">UX Design Input</span></div>
+    </div>
+  </div>
+  <div id="qs-5"></div>
+  <div class="nav-buttons">
+    <button type="button" class="btn btn-prev" onclick="prevSection()">← Back</button>
+    <span class="section-counter">Section 6 of 10</span>
+    <button type="button" class="btn btn-next" onclick="nextSection()">Next Section →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 7 — MERCHANT
+═══════════════════════════════════════════════════════ -->
+<div id="sec-6" class="survey-section">
+  <div class="section-head">
+    <div class="section-num">07</div>
+    <div class="section-title-block">
+      <h2>Merchant &amp; Payee Experience</h2>
+      <p>Focused on sellers, traders, and service providers who will accept payments. Their adoption drives supply-side growth.</p>
+      <div class="section-tags"><span class="stag stag-green">Merchant Persona</span><span class="stag stag-gold">Supply-Side Research</span></div>
+    </div>
+  </div>
+  <div id="qs-6"></div>
+  <div class="nav-buttons">
+    <button type="button" class="btn btn-prev" onclick="prevSection()">← Back</button>
+    <span class="section-counter">Section 7 of 10</span>
+    <button type="button" class="btn btn-next" onclick="nextSection()">Next Section →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 8 — FEATURE PRIORITY
+═══════════════════════════════════════════════════════ -->
+<div id="sec-7" class="survey-section">
+  <div class="section-head">
+    <div class="section-num">08</div>
+    <div class="section-title-block">
+      <h2>Feature Prioritisation</h2>
+      <p>Directly informs product roadmap decisions. Separates must-have from nice-to-have features and tests willingness to pay.</p>
+      <div class="section-tags"><span class="stag stag-red">Product Strategy</span><span class="stag stag-green">Roadmap Input</span></div>
+    </div>
+  </div>
+  <div id="qs-7"></div>
+  <div class="nav-buttons">
+    <button type="button" class="btn btn-prev" onclick="prevSection()">← Back</button>
+    <span class="section-counter">Section 8 of 10</span>
+    <button type="button" class="btn btn-next" onclick="nextSection()">Next Section →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 9 — SCENARIOS
+═══════════════════════════════════════════════════════ -->
+<div id="sec-8" class="survey-section">
+  <div class="section-head">
+    <div class="section-num">09</div>
+    <div class="section-title-block">
+      <h2>Scenario-Based Questions</h2>
+      <p>Real-world edge cases that reveal how users expect the system to behave under stress. Maps directly to UX and error-handling decisions.</p>
+      <div class="section-tags"><span class="stag stag-gold">Edge Cases</span><span class="stag stag-red">Error Handling Research</span></div>
+    </div>
+  </div>
+  <div id="qs-8"></div>
+  <div class="nav-buttons">
+    <button type="button" class="btn btn-prev" onclick="prevSection()">← Back</button>
+    <span class="section-counter">Section 9 of 10</span>
+    <button type="button" class="btn btn-next" onclick="nextSection()">Next Section →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 10 — OPEN FEEDBACK
+═══════════════════════════════════════════════════════ -->
+<div id="sec-9" class="survey-section">
+  <div class="section-head">
+    <div class="section-num">10</div>
+    <div class="section-title-block">
+      <h2>Open Feedback &amp; Strategic Vision</h2>
+      <p>Qualitative questions that surface insights no multiple-choice question can anticipate. Often the richest source of product insight.</p>
+      <div class="section-tags"><span class="stag stag-blue">All Personas</span><span class="stag stag-green">Strategic Research</span></div>
+    </div>
+  </div>
+  <div id="qs-9"></div>
+  <div class="nav-buttons">
+    <button type="button" class="btn btn-prev" onclick="prevSection()">← Back</button>
+    <span class="section-counter">Section 10 of 10</span>
+    <button type="submit" class="btn btn-submit">Submit Survey ✓</button>
+  </div>
+</div>
+
+<!-- SUCCESS STATE -->
+<div class="submit-success" id="successMsg">
+  <div class="check">✅</div>
+  <h2>Thank you for your response!</h2>
+  <p>Your feedback has been recorded and will directly inform the design and development of this product.</p>
+</div>
+
+</form>
+</div><!-- /main -->
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+//  QUESTION DATA
+// ══════════════════════════════════════════════════════════════════
+const SECTIONS = [
+  // ── Section 1 ──────────────────────────────────────────────────
+  [
+    { n:1, type:'single', name:'q01_age', text:'What is your age range?',
+      opts:['Under 18','18 – 24','25 – 34','35 – 44','45 – 54','55 and above'] },
+    { n:2, type:'single', name:'q02_region', text:'Which country or region do you primarily live and transact in?',
+      opts:['West Africa (Nigeria, Ghana, Senegal, etc.)','East/Southern Africa (Kenya, Tanzania, South Africa, etc.)','Southeast Asia (Philippines, Indonesia, Vietnam, etc.)','South Asia (India, Bangladesh, Pakistan, etc.)','Latin America (Brazil, Mexico, Colombia, etc.)','Europe or North America','Other'] },
+    { n:3, type:'multi', name:'q03_use_case', text:'How do you primarily expect to use this app? Select all that apply.',
+      opts:['Pay individuals (friends, family)','Pay at market stalls or street vendors','Accept payments as a seller or trader','Pay for services (transport, repairs, etc.)','Transfer money to family in rural areas','Run a small business or retail shop'] },
+    { n:4, type:'single', name:'q04_income', text:'What is your approximate monthly income or earnings range?',
+      opts:['Under $100 USD equivalent','$100 – $300','$300 – $700','$700 – $1,500','$1,500 – $3,000','Above $3,000','Prefer not to say'] },
+    { n:5, type:'single', name:'q05_device', text:'What kind of smartphone do you primarily use?',
+      opts:['Budget Android (under $100)','Mid-range Android ($100 – $300)','Premium Android (above $300)','iPhone','I do not own a smartphone'] },
+    { n:6, type:'scale', name:'q06_connectivity', text:'How would you describe the quality of mobile internet in the areas where you typically make or receive payments?',
+      min:'Very poor / no signal', max:'Excellent, always connected', steps:5 },
+    { n:7, type:'single', name:'q07_apps_installed', text:'How many mobile payment or money transfer apps do you currently have installed?',
+      opts:['None','1','2 – 3','4 – 5','More than 5'] },
+    { n:8, type:'single', name:'q08_work', text:'What best describes your work situation?',
+      opts:['Employed (formal sector)','Self-employed / freelancer / gig worker','Market trader / small business owner','Student','Unemployed / seeking work','Other'] },
+  ],
+  // ── Section 2 ──────────────────────────────────────────────────
+  [
+    { n:9, type:'multi', name:'q09_payment_methods', text:'Which payment methods do you use at least once a week? Select all that apply.',
+      opts:['Cash','Bank transfer','Mobile money (M-Pesa, OPay, GCash, etc.)','Card (debit/credit) at POS','QR code payment','Cryptocurrency','Barter or informal agreements'] },
+    { n:10, type:'scale', name:'q10_digital_ratio', text:'Out of 10 typical transactions per week, how many would you say are made digitally (not cash)?',
+      min:'All cash', max:'All digital', steps:10 },
+    { n:11, type:'single', name:'q11_network_failures', text:'How often do mobile network issues prevent you from completing a digital payment?',
+      opts:['Almost never','Once a month','Once a week','Several times a week','Daily'] },
+    { n:12, type:'multi', name:'q12_network_workaround', text:'When you cannot complete a digital payment due to connectivity, what do you do? Select all that apply.',
+      opts:['Switch to cash immediately','Wait and try the payment again later','Move to a better signal area','Ask the other person if they have a different method','Abandon the transaction entirely','Use a different app'] },
+    { n:13, type:'single', name:'q13_daily_amount', text:'What is the typical total amount you transact (send or receive) in a single day?',
+      opts:['Under $5 equivalent','$5 – $20','$20 – $50','$50 – $150','$150 – $500','Over $500'] },
+    { n:14, type:'scale', name:'q14_offline_frequency', text:'How frequently do you need to make payments in areas with poor or no internet access (markets, rural areas, tunnels, events)?',
+      min:'Never', max:'Every day', steps:5 },
+    { n:15, type:'multi', name:'q15_apps_used', text:'Which of these apps or services do you currently use for payments? Select all that apply.',
+      opts:['M-Pesa / Safaricom','OPay','GCash (Philippines)','PayMaya / Maya','Pix (Brazil)','Paytm / PhonePe / UPI (India)','Wave / Airtel Money','WhatsApp Pay','None of the above'] },
+    { n:16, type:'open', name:'q16_biggest_frustration', text:'What is your single biggest frustration with your current payment method — the one thing you wish you could change?',
+      placeholder:'Type your answer here…' },
+  ],
+  // ── Section 3 ──────────────────────────────────────────────────
+  [
+    { n:17, type:'scale', name:'q17_phone_wallet_comfort', text:'How comfortable are you with the idea of storing money directly on your phone (not in a bank account) for everyday payments?',
+      min:'Very uncomfortable', max:'Completely comfortable', steps:5 },
+    { n:18, type:'scale', name:'q18_offline_usage', text:'If an app allowed you to pay someone without any internet connection, how often do you think you would use it?',
+      min:"Never — I'd stick to cash", max:'Every day, for everything', steps:5 },
+    { n:19, type:'single', name:'q19_max_offline_amount', text:'What is the maximum single transaction amount you would feel comfortable sending offline, knowing it will be validated when you get back online?',
+      opts:['Under $10','$10 – $30','$30 – $100','$100 – $300','$300 – $1,000','Over $1,000'] },
+    { n:20, type:'scale', name:'q20_crypto_trust', text:'How much would you trust a payment confirmation verified cryptographically on both phones, even before the internet confirms it?',
+      min:"Not at all — I need a bank to confirm", max:"Completely — if the phone says done, it's done", steps:5 },
+    { n:21, type:'multi', name:'q21_trust_signals', text:'Which of the following would make you trust an offline payment confirmation? Select all that apply.',
+      opts:['A visible cryptographic checkmark or verification badge','The other person\'s phone also confirms receipt instantly','A unique transaction reference number I can check later','The app was made by or backed by a known financial institution','It works the same way EMV chip cards work (well-known technology)','A notification when the transaction is later confirmed online','Reviews and ratings from people in my community'] },
+    { n:22, type:'scale', name:'q22_instant_confirm_importance', text:'As a payee (receiving money), how important is it to receive an instant on-screen confirmation — before the internet validates anything?',
+      min:"Not important — I can wait", max:"Critical — I won't release goods until I see it", steps:5 },
+    { n:23, type:'multi', name:'q23_offline_concerns', text:'What concerns you most about the idea of offline payments? Select your top three.',
+      opts:['Someone could show a fake confirmation','My phone could be stolen with money on it','If my phone dies, I could lose the funds','The payment could fail and I would not know immediately','I might accidentally pay the wrong person','I don\'t understand how it works — I don\'t trust what I don\'t understand','There would be no way to dispute or reverse a wrong payment','The app company could disappear'] },
+    { n:24, type:'single', name:'q24_large_purchase', text:'Would you use an offline payment app for a large purchase, such as buying a motorcycle, livestock, or electronics?',
+      opts:['Yes, as long as I trust the app','Maybe — it depends on the seller accepting it','No — for that much money, I\'d need real-time bank confirmation','No — I\'d use cash for large purchases regardless'] },
+    { n:25, type:'open', name:'q25_connectivity_workaround', text:'When you cannot use your usual payment app due to poor signal, what is your current workaround? Describe what you do step by step.',
+      placeholder:'Describe your workaround…' },
+    { n:26, type:'open', name:'q26_replace_cash_conditions', text:'What would need to be absolutely true — about the app, the technology, or the people behind it — for you to completely replace cash with an offline digital payment system?',
+      placeholder:'What would it take?…' },
+  ],
+  // ── Section 4 ──────────────────────────────────────────────────
+  [
+    { n:27, type:'single', name:'q27_ultrasonic_awareness', text:'Before today, had you ever heard of using ultrasonic sound (beyond human hearing) to transfer data between two phones?',
+      opts:['Yes, I know exactly what it is','I\'d heard of it but didn\'t understand it','No, this is completely new to me'] },
+    { n:28, type:'scale', name:'q28_ultrasonic_feeling', text:'After learning that this app uses inaudible sound to transmit payment data between phones, how do you feel about that method?',
+      min:"Unsettled / I don't trust sound", max:"Excited / That sounds innovative", steps:5 },
+    { n:29, type:'open', name:'q29_ultrasonic_words', text:'What three words or phrases immediately come to mind when you think about a phone using sound to send a payment?',
+      placeholder:'Word 1: ____________   Word 2: ____________   Word 3: ____________',
+      note:'Used to build semantic positioning and address negative associations in marketing language.' },
+    { n:30, type:'single', name:'q30_expected_distance', text:'How far apart do you expect two phones to need to be for a sound-based payment to work?',
+      opts:['Touching or less than 5cm','5 – 20cm (close but not touching)','20 – 50cm (typical table or counter distance)','Up to 1 metre','Several metres','I have no idea'] },
+    { n:31, type:'scale', name:'q31_noise_concern', text:'You are at a busy market with lots of background noise — engines, music, crowds. How much would this concern you about the reliability of a sound-based payment?',
+      min:"Not at all worried", max:"Very worried — I'd refuse to use it", steps:5 },
+    { n:32, type:'rank', name:'q32_transmission_ranking', text:'Rank the following payment transmission methods from most preferred (1) to least preferred (5).',
+      opts:['Ultrasonic sound (inaudible, like this app)','NFC tap (like contactless card payments)','QR code scan (payer scans a code)','Bluetooth pairing','Manual entry (type a payment code)'] },
+    { n:33, type:'multi', name:'q33_feedback_signals', text:'During a sound-based payment transfer, which feedback signals would make you feel most confident it is working? Select all that apply.',
+      opts:['An animated sound wave or signal graphic on both screens','A visible countdown timer showing transfer progress','A haptic vibration when the transfer is complete','A distinct success chime or sound effect','A signal strength indicator showing proximity','Both phones lighting up or changing colour simultaneously','A receipt number appearing on both screens at the same moment'] },
+    { n:34, type:'single', name:'q34_wait_tolerance', text:'How long would you wait during an active sound transfer before assuming something had gone wrong?',
+      opts:['1 second','2 – 3 seconds','4 – 5 seconds','6 – 10 seconds','More than 10 seconds'] },
+  ],
+  // ── Section 5 ──────────────────────────────────────────────────
+  [
+    { n:35, type:'multi', name:'q35_security_confidence', text:'What would make you feel confident that a payment app is secure? Select your top five.',
+      opts:['Endorsed or regulated by the central bank or government','Partnership with a well-known bank','Uses biometric authentication (fingerprint/face)','Positive reviews from people I know','Visible padlock or security certificate in the app','End-to-end encrypted transactions','Money insured against loss or theft','Can see transaction proof at any time','ISO or PCI-DSS certified (industry security standards)','Has been audited by an independent security firm'] },
+    { n:36, type:'scale', name:'q36_verified_badge', text:"How important is a clear, persistent 'verified' checkmark or indicator on every completed transaction?",
+      min:'Not important', max:'Essential — I check it every time', steps:5 },
+    { n:37, type:'single', name:'q37_fraud_history', text:'Have you ever been a victim of mobile payment fraud or a financial scam?',
+      opts:['Yes — I lost money and now avoid certain methods','Yes — it happened but I recovered and still use digital payments','No, but I know someone who has been scammed','No, I have never been affected'],
+      note:"If 'Yes': Follow-up — How did the experience change your behaviour with payment apps?" },
+    { n:38, type:'single', name:'q38_startup_vs_bank', text:'Would you sooner trust a payment app built by a new fintech startup, or one offered by an established bank?',
+      opts:['Strongly prefer the established bank — startups feel risky','Slightly prefer the bank, but open to a good startup','No preference — I judge the product on its own merit','Slightly prefer a startup — they tend to have better apps','Strongly prefer a fintech startup — banks are slow and outdated'] },
+    { n:39, type:'multi', name:'q39_security_mustHave', text:"Which security features are absolute must-haves before you'd use any new payment app? Select all that apply.",
+      opts:['PIN code','Biometric login (fingerprint or face)','Transaction notifications by SMS or email','Ability to freeze/lock the app remotely','Daily spending limits','Two-step confirmation for large transactions','Visible recipient name before confirming payment'] },
+    { n:40, type:'scale', name:'q40_biometric_comfort', text:'How comfortable are you using biometric authentication (fingerprint or face scan) to approve payments on your phone?',
+      min:'Uncomfortable — I prefer PIN', max:'Very comfortable — I prefer biometrics', steps:5 },
+    { n:41, type:'scale', name:'q41_secure_chip_trust', text:'If told that your payment keys are stored in a secure chip inside your phone (the same technology used by Apple Pay and chip cards) and can never be stolen remotely, how much would this increase your trust?',
+      min:'No impact on trust', max:'Would completely change my view', steps:5 },
+    { n:42, type:'open', name:'q42_fraud_flag_reaction', text:"If the app notified you that 'one transaction from yesterday has been flagged as unusual and is under review — your funds are safe', how would you react? What would you need to know immediately?",
+      placeholder:'Describe your reaction…' },
+    { n:43, type:'multi', name:'q43_lost_phone_actions', text:'If your phone was lost or stolen with offline wallet funds on it, what would you expect the app to let you do? Select all that apply.',
+      opts:['Remotely freeze the wallet immediately from another device','Recover the balance to a new phone after identity verification','See all recent transactions made before the loss','Get a full refund if any funds were used fraudulently','Block any offline transactions until you\'ve verified your identity'] },
+    { n:44, type:'single', name:'q44_security_transparency', text:'How transparent do you want the app to be about its security processes?',
+      opts:['Tell me nothing — just make it work and keep my money safe','Simple reassurances ("Your payment is secured") are enough','Show me a plain-language summary of what protects my money','I want to see technical details if I choose to look for them','I want full transparency — open source code, audit reports, everything'] },
+  ],
+  // ── Section 6 ──────────────────────────────────────────────────
+  [
+    { n:45, type:'single', name:'q45_max_taps', text:"What is the maximum number of taps or screens you'd tolerate to complete a typical payment to someone?",
+      opts:['1 – 2 taps (as fast as possible)','3 – 4 steps','5 – 6 steps','7 – 10 steps if necessary for security','As many as needed — I don\'t mind complexity'] },
+    { n:46, type:'single', name:'q46_loading_patience', text:'How long would you wait on a loading screen before deciding the payment had failed?',
+      opts:['2 seconds','3 – 5 seconds','6 – 10 seconds','11 – 20 seconds','Over 20 seconds — I\'m patient'] },
+    { n:47, type:'single', name:'q47_practice_mode', text:"Would you use a 'Practice Mode' that lets you try sending and receiving a test payment (no real money) before loading your first real funds?",
+      opts:['Absolutely — I always want to test before using real money','Maybe — depends on how easy the real thing looks','Unlikely — I\'d just use it with real money and learn as I go','No — practice mode would confuse me more'] },
+    { n:48, type:'scale', name:'q48_local_language', text:'How important is it that the app is available in your local language or dialect?',
+      min:'Not important — English is fine', max:'Critical — I won\'t use it otherwise', steps:5 },
+    { n:49, type:'single', name:'q49_icon_vs_text', text:'When learning a new app, do you prefer instructions that are primarily icon-based (pictures, symbols) or text-based (written words)?',
+      opts:['Strongly prefer icons and visuals — I don\'t read instructions','Icons with short text labels work best for me','I\'m comfortable with text as long as it\'s simple','I prefer detailed written instructions'] },
+    { n:50, type:'multi', name:'q50_onboarding_frustrations', text:'What would frustrate you most during onboarding (setting up the app for the first time)? Select your top three.',
+      opts:['Too many personal details or documents required','The verification process takes more than a day','Poor camera quality making ID scanning fail','App crashes or freezes during setup','Being asked for permissions that feel invasive (contacts, location, mic)','Unclear explanations of what each step is for','Being forced to link a bank account I don\'t have','SMS OTP code arrives too slowly or not at all'] },
+    { n:51, type:'single', name:'q51_setup_time', text:'How much time are you willing to invest in setting up the app before making your first payment?',
+      opts:['Less than 2 minutes','2 – 5 minutes','5 – 10 minutes','10 – 20 minutes (for a thorough, secure setup)','As long as it takes'] },
+    { n:52, type:'multi', name:'q52_confirm_screen_info', text:"Before you tap 'Confirm' to approve a payment, what minimum information must be clearly visible on screen? Select all that apply.",
+      opts:['The exact amount','The recipient\'s name','The recipient\'s photo or avatar','A description or reason for the payment','My remaining offline wallet balance after the payment','Timestamp','A unique transaction reference'] },
+  ],
+  // ── Section 7 ──────────────────────────────────────────────────
+  [
+    { n:53, type:'multi', name:'q53_merchant_concerns', text:'If you accept payments as a seller, what are your biggest concerns about adopting a new payment method for your business? Select your top three.',
+      opts:['Customers might not have or trust the app','Technical failure means I lose a sale','I might not get paid if something goes wrong with the network','Takes too long for each payment — slows down my queue','My customers are not comfortable with new technology','The fees are too high','I can\'t use it on my current phone','I don\'t trust that the settlement will actually arrive in my bank'] },
+    { n:54, type:'single', name:'q54_offline_accept', text:'As a seller, would you accept a payment that is cryptographically confirmed on your phone now, but only settled into your bank account when internet connectivity returns (hours later)?',
+      opts:['Yes — the on-device confirmation is enough for me','Yes, but only for small amounts (under $20)','Depends on how reliable the system has proven to be','No — I need my bank account to show the money first'] },
+    { n:55, type:'single', name:'q55_static_qr', text:'Would you use a permanent printed or displayed QR code on your stall or counter so customers can scan and pay without you doing anything?',
+      opts:['Yes — the less I have to touch my phone per transaction, the better','Maybe — depends on how it\'s set up','No — I prefer to actively initiate each transaction for security','No — my stall has no fixed location'] },
+    { n:56, type:'scale', name:'q56_audio_chime', text:'As a seller in a noisy environment, how important is a loud, distinct audio chime when a payment is received — something you can hear without looking at your phone?',
+      min:'Not important — screen is enough', max:"Critical — I won't release goods until I hear it", steps:5 },
+    { n:57, type:'multi', name:'q57_sales_tracking', text:'How do you currently keep track of your daily sales? Select all that apply.',
+      opts:['Paper ledger or notebook','Phone calculator app','Spreadsheet','Memory only','A separate bookkeeping app','POS machine receipt records'] },
+    { n:58, type:'multi', name:'q58_daily_summary', text:"What would a 'daily sales summary' screen need to show to be genuinely useful to you? Select all that apply.",
+      opts:['Total received today (in local currency)','Number of transactions','List of individual transactions with time and amount','Which transactions are confirmed vs. pending reconciliation','Comparison to yesterday or last week','Total pending settlement (not yet in my bank)','Export to share with my accountant or tax records'] },
+    { n:59, type:'single', name:'q59_pay_suppliers', text:'If you received payments with this app, would you also use it to pay your suppliers, wholesalers, or staff?',
+      opts:['Yes — I\'d use it for everything if it works well','Maybe — I\'d try it for small payments first','Unlikely — I\'d keep receiving only','No — payments to suppliers must go through the bank'] },
+    { n:60, type:'open', name:'q60_merchant_dealbreaker', text:'What is the single thing that would cause you to stop using this app as a merchant within the first month?',
+      placeholder:'What would make you stop using it?…' },
+  ],
+  // ── Section 8 ──────────────────────────────────────────────────
+  [
+    { n:61, type:'rank', name:'q61_feature_rank', text:'Rank the following product features from most important to least important to you personally.',
+      opts:['Payments work completely offline','Instant confirmation on both devices','Strong security and fraud protection','Simple, fast payment flow (under 10 seconds)','Clear transaction history and receipts','Low or zero transaction fees','Works across different phone types and brands','Customer support when something goes wrong'] },
+    { n:62, type:'multi', name:'q62_recommend_drivers', text:'Which features would make you most likely to recommend this app to a friend or customer? Select your top three.',
+      opts:['Works when internet is down','Safer than sending a screenshot (no fake confirmations)','Faster than any other payment method','Works internationally (cross-border)','No bank account required to get started','Merchants love it (wide acceptance)','Detailed receipts I can use for records'] },
+    { n:63, type:'open', name:'q63_non_negotiable', text:'What is one feature that would be completely non-negotiable for you — without it, you would not use the app at all?',
+      placeholder:'Your non-negotiable feature…' },
+    { n:64, type:'open', name:'q64_future_feature', text:"What is one feature you would love to see in the app eventually, even if it's not there at launch?",
+      placeholder:'Future feature wishlist…' },
+    { n:65, type:'single', name:'q65_premium_willingness', text:'If a free version had a daily transaction limit and a premium version (for a monthly fee) removed that limit and added merchant analytics — how much would you pay per month?',
+      opts:['Nothing — I would only use the free version','Under $1/month','$1 – $2/month','$2 – $5/month','$5 – $10/month','Over $10/month — if the product is excellent'] },
+    { n:66, type:'open', name:'q66_feature_from_other_app', text:'What feature from any other app (payment or otherwise) do you wish every payment app had?',
+      placeholder:'Feature from another app…' },
+  ],
+  // ── Section 9 ──────────────────────────────────────────────────
+  [
+    { n:67, type:'single', name:'q67_battery_die', scenario:'You send a payment of $30 to a market trader. Immediately after, your phone battery dies completely. You\'re not sure if the payment went through.',
+      text:'What do you expect to happen when you charge your phone and open the app?',
+      opts:['The payment is shown as completed — the receipt was saved before the phone died','The payment is shown as "pending" until I reconnect to the internet','I have no idea — I\'d expect the money to still be in my wallet','I\'d expect to have to contact support to find out'] },
+    { n:68, type:'single', name:'q68_offline_hold', scenario:'You receive a payment of $50 offline. Your phone has no internet for the next 12 hours. The money shows in your wallet balance but has not yet been confirmed by the bank.',
+      text:'How real does that $50 feel to you during those 12 hours?',
+      opts:['Completely real — I\'d spend it immediately','Real enough — I\'d use it for small things but hold off on large expenses','Uncertain — I\'d wait for bank confirmation before trusting it','Not real yet — I wouldn\'t consider it mine until the bank shows it'] },
+    { n:69, type:'multi', name:'q69_flag_notification', scenario:"After your phone syncs online, you receive a notification: 'One transaction from yesterday has been flagged for review. Your funds are safe.'",
+      text:'How would you want to be notified, and what would you need to see in that notification?',
+      opts:['Push notification with a short, calm message','In-app banner I see when I open the app','SMS to my registered number','Email with full details','A phone call from support'] },
+    { n:70, type:'single', name:'q70_wrong_payment', scenario:'You accidentally sent $25 to the wrong person — you meant to pay a different contact with a similar name.',
+      text:'What do you expect the app to let you do in this situation?',
+      opts:['Instantly cancel/reverse the payment (even offline)','Request a refund from the recipient through the app','Contact the recipient directly via in-app message','File a dispute with the app\'s support team','Accept the loss — I should have double-checked'] },
+    { n:71, type:'single', name:'q71_balance_mismatch', scenario:'Your offline wallet shows $80 remaining, but after syncing, your bank balance shows a different figure than you expected.',
+      text:'What is your immediate assumption about what happened?',
+      opts:['A transaction was reversed or charged a fee I didn\'t see','The app made an error and I should contact support','I miscounted my spending','I was defrauded — I\'d freeze my wallet immediately','It\'s probably a display delay — I\'d wait and refresh'] },
+    { n:72, type:'single', name:'q72_forced_update', scenario:'You are about to pay a vendor at a market. The app shows a banner: "App update required before you can make payments." You have 3 bars of data signal.',
+      text:'What do you do?',
+      opts:['Update immediately — 2 minutes is fine if it keeps the app secure','Ask the vendor to wait while I update','Switch to cash instead','Feel frustrated — this should never block a payment','Look for a way to dismiss the update and pay anyway'] },
+    { n:73, type:'single', name:'q73_double_spend', scenario:"A payer's phone has been compromised and used to try to pay two different people with the same offline funds (double-spending). The system detects this when the phone syncs online.",
+      text:'As the innocent second recipient, what do you expect the system to do?',
+      opts:['Automatically refund me in full — the system should protect innocent users','Freeze both transactions while the fraud is investigated','Contact me to explain what happened and give me options','Nothing — offline payments are always at-risk and I accept that'] },
+    { n:74, type:'multi', name:'q74_stranger_payment', scenario:'A complete stranger approaches you and says they want to pay you $20 via this app. You\'ve never met them before.',
+      text:'What information would you need to see in the app before accepting the payment?',
+      opts:['Their verified name','Their profile photo','A "verified user" or trust badge','How long they\'ve had an account','A transaction history or reputation score','Proof that their identity was verified (KYC)','Nothing — money is money, I don\'t need to know them'] },
+  ],
+  // ── Section 10 ─────────────────────────────────────────────────
+  [
+    { n:75, type:'open', name:'q75_only_app', text:'What would this app need to be for you to delete every other payment app and use only this one?',
+      placeholder:'What would make it your only app?…' },
+    { n:76, type:'open', name:'q76_uninstall_reason', text:'What is the one thing — a feature, a behaviour, a feeling, or an experience — that would make you uninstall this app within the first week?',
+      placeholder:'What would make you delete it?…' },
+    { n:77, type:'open', name:'q77_ideal_experience', text:'In two or three sentences, describe what your ideal payment experience looks and feels like — ignoring what currently exists.',
+      placeholder:'Describe your ideal payment experience…' },
+    { n:78, type:'open', name:'q78_biggest_challenge', text:'From your perspective, what do you think will be the hardest challenge for this product to overcome in your community or market?',
+      placeholder:'The biggest challenge will be…' },
+    { n:79, type:'scale', name:'q79_nps', text:'Based on everything you\'ve read about this product, how likely are you to recommend it to someone in your community once it\'s available?',
+      min:'Definitely would not recommend', max:'Would absolutely recommend', steps:10,
+      note:'Net Promoter Score — baseline product-market fit indicator.' },
+    { n:80, type:'open', name:'q80_other_thoughts', text:'Any other thoughts, suggestions, concerns, or things you\'d like the product team to know?',
+      placeholder:'Anything else on your mind…' },
+  ],
+];
+
+// ══════════════════════════════════════════════════════════════════
+//  RENDER ENGINE
+// ══════════════════════════════════════════════════════════════════
+function renderQuestions() {
+  SECTIONS.forEach((qs, si) => {
+    const container = document.getElementById(`qs-${si}`);
+    if (!container) return;
+    qs.forEach(q => {
+      const card = document.createElement('div');
+      card.className = 'q-card';
+      card.innerHTML = `<div class="q-num-badge">${q.n}</div>`;
+
+      // Type badge
+      const typeMap = { single:'qt-single Single Choice', multi:'qt-multi Multi-Select',
+                        scale:'qt-scale Scale', rank:'qt-rank Rank', open:'qt-open Open Text',
+                        scenario:'qt-scenario Scenario' };
+      const t = typeMap[q.type] || 'qt-open Open';
+      const [cls, label] = t.split(' ');
+      card.innerHTML += `<div class="q-meta"><span class="q-type ${cls}">${label}</span></div>`;
+
+      // Scenario box
+      if (q.scenario) {
+        card.innerHTML += `<div class="scenario-box"><strong>Scenario:</strong> ${q.scenario}</div>`;
+      }
+
+      card.innerHTML += `<div class="q-text">${q.text}</div>`;
+
+      // Input area
+      if (q.type === 'single') {
+        card.innerHTML += buildSingle(q);
+      } else if (q.type === 'multi') {
+        card.innerHTML += buildMulti(q);
+      } else if (q.type === 'scale') {
+        card.innerHTML += buildScale(q);
+      } else if (q.type === 'rank') {
+        card.innerHTML += buildRank(q);
+      } else if (q.type === 'open') {
+        card.innerHTML += `<textarea class="open-textarea" name="${q.name}" rows="4" placeholder="${q.placeholder || 'Type your answer here…'}"></textarea>`;
+      }
+
+      if (q.note) {
+        card.innerHTML += `<div class="q-note">ℹ ${q.note}</div>`;
+      }
+
+      container.appendChild(card);
+    });
+  });
+
+  // Activate drag-to-rank after rendering
+  activateRanking();
+}
+
+function buildSingle(q) {
+  let html = '<ul class="options-list">';
+  q.opts.forEach((opt, i) => {
+    const id = `${q.name}_${i}`;
+    html += `<li>
+      <input type="radio" name="${q.name}" id="${id}" value="${opt}">
+      <label for="${id}"><span class="opt-mark"></span>${opt}</label>
+    </li>`;
+  });
+  return html + '</ul>';
+}
+
+function buildMulti(q) {
+  let html = '<ul class="options-list">';
+  q.opts.forEach((opt, i) => {
+    const id = `${q.name}_${i}`;
+    html += `<li>
+      <input type="checkbox" name="${q.name}[]" id="${id}" value="${opt}">
+      <label for="${id}"><span class="opt-mark"></span>${opt}</label>
+    </li>`;
+  });
+  return html + '</ul>';
+}
+
+function buildScale(q) {
+  const steps = q.steps || 5;
+  let html = `<div class="scale-wrap">
+    <div class="scale-buttons">`;
+  for (let i = 1; i <= steps; i++) {
+    const id = `${q.name}_${i}`;
+    html += `<label class="scale-btn-label">
+      <input type="radio" name="${q.name}" id="${id}" value="${i}">
+      <span>${i}</span>
+    </label>`;
+  }
+  html += `</div>
+    <div class="scale-legend">
+      <span>${q.min}</span>
+      <span>${q.max}</span>
+    </div>
+  </div>`;
+  return html;
+}
+
+function buildRank(q) {
+  let html = `<p class="rank-hint">☰ Drag to reorder from most preferred (top) to least preferred (bottom).</p>
+    <ul class="rank-list" id="rank_${q.name}">`;
+  q.opts.forEach((opt, i) => {
+    html += `<li class="rank-item" draggable="true" data-name="${q.name}">
+      <span class="drag-handle">⠿</span>
+      <span class="rank-badge">${i + 1}</span>
+      <span class="rank-text">${opt}</span>
+      <input type="hidden" name="${q.name}[${i}]" value="${opt}">
+    </li>`;
+  });
+  html += '</ul>';
+  return html;
+}
+
+// ── DRAG-TO-RANK ──────────────────────────────────────────────────
+function activateRanking() {
+  document.querySelectorAll('.rank-list').forEach(list => {
+    let dragged = null;
+
+    list.addEventListener('dragstart', e => {
+      dragged = e.target.closest('.rank-item');
+      if (dragged) { setTimeout(() => dragged.classList.add('dragging'), 0); }
+    });
+    list.addEventListener('dragend', e => {
+      if (dragged) dragged.classList.remove('dragging');
+      list.querySelectorAll('.rank-item').forEach(item => item.classList.remove('drag-over'));
+      updateRankBadges(list);
+    });
+    list.addEventListener('dragover', e => {
+      e.preventDefault();
+      const target = e.target.closest('.rank-item');
+      if (!target || target === dragged) return;
+      list.querySelectorAll('.rank-item').forEach(i => i.classList.remove('drag-over'));
+      target.classList.add('drag-over');
+      const rect = target.getBoundingClientRect();
+      const mid = rect.top + rect.height / 2;
+      if (e.clientY < mid) {
+        list.insertBefore(dragged, target);
+      } else {
+        list.insertBefore(dragged, target.nextSibling);
+      }
+    });
+    list.addEventListener('drop', e => e.preventDefault());
+  });
+}
+
+function updateRankBadges(list) {
+  list.querySelectorAll('.rank-item').forEach((item, idx) => {
+    item.querySelector('.rank-badge').textContent = idx + 1;
+    // Update hidden input names to preserve order
+    const name = item.dataset.name;
+    const hidden = item.querySelector('input[type="hidden"]');
+    if (hidden) hidden.name = `${name}[${idx}]`;
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  SECTION NAVIGATION
+// ══════════════════════════════════════════════════════════════════
+let currentSection = 0;
+const TOTAL = 10;
+
+function showTab(idx, btn) {
+  document.querySelectorAll('.survey-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.toc-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`sec-${idx}`).classList.add('active');
+  if (btn) btn.classList.add('active');
+  else document.querySelectorAll('.toc-btn')[idx].classList.add('active');
+  currentSection = idx;
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function nextSection() {
+  if (currentSection < TOTAL - 1) showTab(currentSection + 1, null);
+}
+function prevSection() {
+  if (currentSection > 0) showTab(currentSection - 1, null);
+}
+
+function updateProgress() {
+  const pct = Math.round(((currentSection + 1) / TOTAL) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressLabel').textContent = `Section ${currentSection + 1} of ${TOTAL}`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  FORM SUBMISSION
+// ══════════════════════════════════════════════════════════════════
+document.getElementById('surveyForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const form = this;
+  const action = form.getAttribute('action');
+
+  
+  const submitBtn = form.querySelector('.btn-submit');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Submitting…';
+
+  try {
+    const data = new FormData(form);
+    const res = await fetch(action, {
+      method: 'POST',
+      body: data,
+      headers: { 'Accept': 'application/json' }
+    });
+
+    if (res.ok) {
+      document.getElementById('sec-9').style.display = 'none';
+      document.getElementById('successMsg').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      const json = await res.json().catch(() => ({}));
+      alert('Submission error: ' + (json.error || 'Unknown error. Please try again.'));
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Survey ✓';
+    }
+  } catch (err) {
+    alert('Network error. Please check your connection and try again.');
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit Survey ✓';
+  }
+});
+
+// ── INIT ──────────────────────────────────────────────────────────
+renderQuestions();
+</script>
+</body>
+</html>
