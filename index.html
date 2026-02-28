@@ -266,9 +266,18 @@
 <div class="main">
 
 <form id="surveyForm"
-      action="https://formspree.io/f/xaqdkvzl"
+      name="research-survey"
       method="POST"
-      novalidate>
+      data-netlify="true"
+      data-netlify-honeypot="bot-field">
+
+  <input type="hidden" name="form-name" value="research-survey">
+
+  <p hidden>
+    <label>Don’t fill this out:
+      <input name="bot-field">
+    </label>
+  </p>
 
   <!-- Hidden: tracks which section was active on submit -->
   <input type="hidden" name="_subject" value="New Survey Response — Offline P2P Payment System"/>
